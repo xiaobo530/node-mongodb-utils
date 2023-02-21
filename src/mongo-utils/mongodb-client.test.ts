@@ -407,7 +407,7 @@ describe("MongoDB Client", () => {
     }
   });
 
-  test.only("count douments", async () => {
+  test("count douments", async () => {
     const client = await createMongodbCient({ url: mongoUrl });
     expect(client.db).not.toBeNull();
 
@@ -424,4 +424,44 @@ describe("MongoDB Client", () => {
       await client.close();
     }
   });
+
+  test("distinct douments", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const result = await client.distinct<IUser>("user", "name", {
+        email: { $exists: true },
+      });
+
+      // expect(count).toBeGreaterThanOrEqual(0);
+      // console.log(result);
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test.only("exists douments", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const result = await client.exists<IUser>("user", {
+        email: { $exists: true },
+      });
+
+     
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
 });
