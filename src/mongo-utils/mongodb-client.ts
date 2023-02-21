@@ -1,5 +1,6 @@
 import { DeleteResult } from "mongodb";
 import {
+  AnyObject,
   Connection,
   ConnectOptions,
   createConnection,
@@ -9,6 +10,9 @@ import {
   QueryOptions,
   SaveOptions,
   Schema,
+  UpdateQuery,
+  UpdateWithAggregationPipeline,
+  UpdateWriteOpResult,
 } from "mongoose";
 
 export interface MongoConfig {
@@ -120,10 +124,10 @@ export async function createMongodbCient(cfg: MongoConfig) {
 
   /**
    * delete one doc
-   * @param modelName 
-   * @param filter 
-   * @param options 
-   * @returns 
+   * @param modelName
+   * @param filter
+   * @param options
+   * @returns
    */
   async function deleteOne<T = any>(
     modelName: string,
@@ -137,10 +141,10 @@ export async function createMongodbCient(cfg: MongoConfig) {
 
   /**
    * delete many docs
-   * @param modelName 
-   * @param filter 
-   * @param options 
-   * @returns 
+   * @param modelName
+   * @param filter
+   * @param options
+   * @returns
    */
   async function deleteMany<T = any>(
     modelName: string,
@@ -152,7 +156,94 @@ export async function createMongodbCient(cfg: MongoConfig) {
     return delResult.acknowledged;
   }
 
+  /**
+   * find & update docs by its id
+   * @param modelName
+   * @param id
+   * @param options
+   * @returns
+   */
+  async function findByIdAndUpdate<T = any>(
+    modelName: string,
+    id: any,
+    update?: UpdateQuery<any>,
+    options?: QueryOptions<T>
+  ): Promise<HydratedDocument<T> | null> {
+    const DBModel = db.model(modelName);
+    return await DBModel.findByIdAndUpdate(id, update, options);
+  }
 
+  /**
+   * update one doc
+   * @param modelName
+   * @param filter
+   * @param update
+   * @param options
+   * @returns
+   */
+  async function updateOne<T = any>(
+    modelName: string,
+    filter?: FilterQuery<T>,
+    update?: UpdateQuery<T> | UpdateWithAggregationPipeline,
+    options?: QueryOptions<T>
+  ): Promise<boolean> {
+    const DBModel = db.model(modelName);
+    const updResult: UpdateWriteOpResult = await DBModel.updateOne(
+      filter,
+      update,
+      options
+    );
+    return updResult.acknowledged;
+  }
+
+  async function updateMany<T = any>(
+    modelName: string,
+    filter?: FilterQuery<T>,
+    update?: UpdateQuery<T> | UpdateWithAggregationPipeline,
+    options?: QueryOptions<T>
+  ): Promise<boolean> {
+    const DBModel = db.model(modelName);
+    const updResult: UpdateWriteOpResult = await DBModel.updateMany(
+      filter,
+      update,
+      options
+    );
+    return updResult.acknowledged;
+  }
+
+  /**
+   * find & replace one doc
+   * @param modelName
+   * @param id
+   * @param replacement
+   * @param options
+   * @returns
+   */
+  async function findByIdAndReplace<T = any>(
+    modelName: string,
+    id: any,
+    replacement: T | AnyObject,
+    options?: QueryOptions<T>
+  ): Promise<HydratedDocument<T> | null> {
+    const DBModel = db.model(modelName);
+    return await DBModel.findOneAndReplace({ _id: id }, replacement, options);
+  }
+
+  /**
+   * get the docs count
+   * @param modelName 
+   * @param filter 
+   * @param options 
+   * @returns 
+   */
+  async function countDocuments<T = any>(
+    modelName: string,
+    filter: FilterQuery<T>,
+    options?: QueryOptions<T>
+  ): Promise<number> {
+    const DBModel = db.model(modelName);
+    return await DBModel.countDocuments(filter, options);
+  }
 
   async function close() {
     await db.close();
@@ -169,7 +260,13 @@ export async function createMongodbCient(cfg: MongoConfig) {
     createMany,
     insertMany,
     findByIdAndDelete,
-    deleteOne
+    deleteOne,
+    deleteMany,
+    findByIdAndUpdate,
+    updateOne,
+    updateMany,
+    findByIdAndReplace,
+    countDocuments,
   };
 }
 

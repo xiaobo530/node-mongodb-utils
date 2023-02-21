@@ -209,7 +209,7 @@ describe("MongoDB Client", () => {
     }
   });
 
-  test.only("delete one document", async () => {
+  test("delete one document", async () => {
     const client = await createMongodbCient({ url: mongoUrl });
     expect(client.db).not.toBeNull();
 
@@ -228,7 +228,196 @@ describe("MongoDB Client", () => {
       const deleted = await client.deleteOne("user", { name: doc.name });
 
       expect(deleted).toBeTruthy();
-     
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("delete many document", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const docs: Array<Partial<IUser>> = [
+        {
+          name: "insert many documents for delete",
+          email: "bill@initech.com",
+          avatar: "https://i.imgur.com/dM7Thhn.png",
+        },
+        {
+          name: "insert many documents for delete",
+          email: "bill@initech.com",
+          avatar: "https://i.imgur.com/dM7Thhn.png",
+        },
+        {
+          name: "insert many documents for delete",
+          email: "bill@initech.com",
+          avatar: "https://i.imgur.com/dM7Thhn.png",
+        },
+      ];
+
+      const inserted = await client.insertMany("user", docs);
+      expect(inserted.length).toBe(3);
+
+      const deleted = await client.deleteMany("user", {
+        name: "insert many documents for delete",
+      });
+
+      expect(deleted).toBeTruthy();
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("find & update one document by id", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const doc: Partial<IUser> = {
+        name: "insert one document for update",
+        email: "bill@initech.com",
+        avatar: "https://i.imgur.com/dM7Thhn.png",
+      };
+
+      const inserted = await client.insertMany("user", [doc]);
+      expect(inserted.length).toBe(1);
+
+      const update = await client.findByIdAndUpdate<IUser>(
+        "user",
+        inserted[0]._id,
+        { email: "update@gmail.com" },
+        { new: true }
+      );
+      // console.log(update);
+
+      expect(update?.email).toBe("update@gmail.com");
+
+      const update2 = await client.findByIdAndUpdate<IUser>(
+        "user",
+        inserted[0]._id,
+        { email: "update2@gmail.com" },
+        { new: true }
+      );
+      // console.log(update2);
+
+      expect(update?.email).toBe("update2@gmail.com");
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("update one document", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const doc: Partial<IUser> = {
+        name: "insert one document for update",
+        email: "bill@initech.com",
+        avatar: "https://i.imgur.com/dM7Thhn.png",
+      };
+
+      const inserted = await client.insertMany("user", [doc]);
+      expect(inserted.length).toBe(1);
+
+      const update = await client.updateOne<IUser>(
+        "user",
+        { name: "insert one document for update" },
+        { email: "update-one@gmail.com" }
+      );
+      expect(update).toBeTruthy();
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("update many document", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const doc: Partial<IUser> = {
+        name: "insert one document for update",
+        email: "bill@initech.com",
+        avatar: "https://i.imgur.com/dM7Thhn.png",
+      };
+
+      const inserted = await client.insertMany("user", [doc]);
+      expect(inserted.length).toBe(1);
+
+      const update = await client.updateMany<IUser>(
+        "user",
+        { name: "insert one document for update" },
+        { email: "update-may@gmail.com" }
+      );
+      expect(update).toBeTruthy();
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("find & replace one document by id", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const doc: Partial<IUser> = {
+        name: "insert one document for replace",
+        email: "bill@initech.com",
+        avatar: "https://i.imgur.com/dM7Thhn.png",
+      };
+
+      const inserted = await client.insertMany("user", [doc]);
+      expect(inserted.length).toBe(1);
+
+      const replace = await client.findByIdAndReplace<IUser>(
+        "user",
+        inserted[0]._id,
+        { name: "replaced", firstName: "hello", lastName: "bob" },
+        { new: true }
+      );
+      // console.log(replace);
+
+      expect(replace?.firstName).toBe("hello");
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test.only("count douments", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const count = await client.countDocuments("user", {});
+
+      expect(count).toBeGreaterThanOrEqual(0);
+      console.log(count);
     } catch (error) {
       expect(error).not.toBeNull();
     } finally {
