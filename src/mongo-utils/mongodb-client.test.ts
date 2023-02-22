@@ -445,7 +445,7 @@ describe("MongoDB Client", () => {
     }
   });
 
-  test.only("exists douments", async () => {
+  test("exists douments", async () => {
     const client = await createMongodbCient({ url: mongoUrl });
     expect(client.db).not.toBeNull();
 
@@ -455,8 +455,6 @@ describe("MongoDB Client", () => {
       const result = await client.exists<IUser>("user", {
         email: { $exists: true },
       });
-
-     
     } catch (error) {
       expect(error).not.toBeNull();
     } finally {
@@ -464,4 +462,35 @@ describe("MongoDB Client", () => {
     }
   });
 
+  test("find doc by id", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const result = await client.findById("user", "63f4ce37d4401ab9a60b0e55");
+      console.log(result);
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test.only("find one doc", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const result = await client.findOne("user", { lastName: "bob" });
+      // console.log(result);
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
 });

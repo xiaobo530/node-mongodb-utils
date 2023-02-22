@@ -13,7 +13,8 @@ import {
   UpdateQuery,
   UpdateWithAggregationPipeline,
   UpdateWriteOpResult,
-  Document
+  Document,
+  ProjectionType
 } from "mongoose";
 
 export interface MongoConfig {
@@ -262,6 +263,12 @@ export async function createMongodbCient(cfg: MongoConfig) {
     return await DBModel.distinct(field, filter);
   }
 
+  /**
+   * at least one document exists in the database
+   * @param modelName 
+   * @param filter 
+   * @returns 
+   */
   async function exists<T = any>(
     modelName: string,
     filter: FilterQuery<T>
@@ -270,10 +277,39 @@ export async function createMongodbCient(cfg: MongoConfig) {
     return await DBModel.exists(filter);
   }
 
-  // exists(filter: FilterQuery<T>, callback: Callback<{ _id: InferId<T> } | null>): QueryWithHelpers<Pick<Document<T>, '_id'> | null, HydratedDocument<T, TMethodsAndOverrides, TVirtuals>, TQueryHelpers, T>;
-  // exists(filter: FilterQuery<T>): QueryWithHelpers<{ _id: InferId<T> } | null, HydratedDocument<T, TMethodsAndOverrides, TVirtuals>, TQueryHelpers, T>;
+  /**
+   * find a doc by id
+   * @param modelName 
+   * @param id 
+   * @param projection 
+   * @returns 
+   */
+  async function findById<T = any>(
+    modelName: string,
+    id: any,
+    projection?: ProjectionType<T> | null
+  ): Promise<HydratedDocument<T> |  null> {
+    const DBModel = db.model(modelName);
+    return await DBModel.findById(id, projection).lean();
+  }
 
-
+  /**
+   * find one doc
+   * @param modelName 
+   * @param filter 
+   * @param projection 
+   * @param options 
+   * @returns 
+   */
+  async function findOne<T = any>(
+    modelName: string,
+    filter?: FilterQuery<T>,
+    projection?: ProjectionType<T> | null,
+    options?: QueryOptions<T> | null,
+  ): Promise<HydratedDocument<T> |  null> {
+    const DBModel = db.model(modelName);
+    return await DBModel.findOne(filter, projection, options);
+  }
 
   async function close() {
     await db.close();
@@ -298,7 +334,9 @@ export async function createMongodbCient(cfg: MongoConfig) {
     findByIdAndReplace,
     countDocuments,
     distinct,
-    exists
+    exists,
+    findById,
+    findOne
   };
 }
 
