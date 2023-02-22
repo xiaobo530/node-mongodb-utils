@@ -14,7 +14,8 @@ import {
   UpdateWithAggregationPipeline,
   UpdateWriteOpResult,
   Document,
-  ProjectionType
+  ProjectionType,
+  Query
 } from "mongoose";
 
 export interface MongoConfig {
@@ -311,6 +312,35 @@ export async function createMongodbCient(cfg: MongoConfig) {
     return await DBModel.findOne(filter, projection, options);
   }
 
+  /**
+   * find many docs
+   * @param modelName 
+   * @param filter 
+   * @param projection 
+   * @param options 
+   * @returns 
+   */
+  async function find<T = any>(
+    modelName: string,
+    filter: FilterQuery<T>,
+    projection?: ProjectionType<T> | null,
+    options?: QueryOptions<T> | null,
+  ): Promise<Array<HydratedDocument<T>> |  null> {
+    const DBModel = db.model(modelName);
+    return await DBModel.find(filter, projection, options);
+  }
+
+  function findQuery<T = any>(
+    modelName: string,
+    filter: FilterQuery<T>,
+    projection?: ProjectionType<T> | null,
+    options?: QueryOptions<T> | null,
+  ): Query<Array<T>, T> {
+    const DBModel = db.model(modelName);
+    return DBModel.find(filter, projection, options);
+  }
+
+
   async function close() {
     await db.close();
   }
@@ -336,7 +366,9 @@ export async function createMongodbCient(cfg: MongoConfig) {
     distinct,
     exists,
     findById,
-    findOne
+    findOne,
+    find, 
+    findQuery
   };
 }
 

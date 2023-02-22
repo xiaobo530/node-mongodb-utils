@@ -478,7 +478,7 @@ describe("MongoDB Client", () => {
     }
   });
 
-  test.only("find one doc", async () => {
+  test("find one doc", async () => {
     const client = await createMongodbCient({ url: mongoUrl });
     expect(client.db).not.toBeNull();
 
@@ -486,6 +486,43 @@ describe("MongoDB Client", () => {
       client.configModels(["user", UserSchema]);
 
       const result = await client.findOne("user", { lastName: "bob" });
+      // console.log(result);
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test("find many docs", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const result = await client.find("user", { email: "bill@initech.com" });
+      console.log(result);
+    } catch (error) {
+      expect(error).not.toBeNull();
+    } finally {
+      await client.close();
+    }
+  });
+
+  test.only("using find query", async () => {
+    const client = await createMongodbCient({ url: mongoUrl });
+    expect(client.db).not.toBeNull();
+
+    try {
+      client.configModels(["user", UserSchema]);
+
+      const query = client.findQuery("user", {});
+
+      query.where("email").equals("bill@initech.com");
+      query.where("name").equals("insert many documents 1");
+      const result = await query.exec();
+      // client.find("user", { email: "bill@initech.com" });
       // console.log(result);
     } catch (error) {
       expect(error).not.toBeNull();
